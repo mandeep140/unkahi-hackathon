@@ -16,14 +16,6 @@ export interface CheckIn {
   createdAt: string;
 }
 
-export interface JournalEntry {
-  id: string;
-  userId: string;
-  text: string;
-  sentiment: "low" | "neutral" | "positive";
-  createdAt: string;
-}
-
 export interface AssessmentQuestion {
   id: string;
   prompt: string;

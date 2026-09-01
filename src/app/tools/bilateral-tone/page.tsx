@@ -1,10 +1,22 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { Suspense, useEffect, useRef, useState } from "react";
 import Link from "next/link";
-import { Button, Card } from "@/components/ui";
+import { useSearchParams } from "next/navigation";
+import { Button, Card, LoadingState } from "@/components/ui";
+import { RegulationRecheck } from "@/components/RegulationRecheck";
 
 export default function BilateralTonePage() {
+  return (
+    <Suspense fallback={<LoadingState />}>
+      <BilateralToneContent />
+    </Suspense>
+  );
+}
+
+function BilateralToneContent() {
+  const searchParams = useSearchParams();
+  const fromResults = searchParams.get("from") === "results";
   const [running, setRunning] = useState(false);
   const [side, setSide] = useState<"left" | "right">("left");
   const audioCtxRef = useRef<AudioContext | null>(null);
@@ -87,6 +99,8 @@ export default function BilateralTonePage() {
       <Button onClick={() => setRunning((r) => !r)} className="w-fit">
         {running ? "Stop" : "Start"}
       </Button>
+
+      {fromResults && <RegulationRecheck toolId="bilateral-tone" />}
 
       <Link
         href="/tools"

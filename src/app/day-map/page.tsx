@@ -1,31 +1,20 @@
 "use client";
 
-import { Suspense, useMemo, useState } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { DAY_MAP_STEPS, scoreDayMap, type DayMapAnswer } from "@/lib/daymap";
 import { saveDayMapResult } from "@/lib/localStore";
+import { clearSessionSensations, getSessionSensations } from "@/lib/sessionState";
 import { apiPost } from "@/lib/client";
 import { Card, LoadingState, ProgressDots } from "@/components/ui";
 
 export default function DayMapPage() {
-  return (
-    <Suspense fallback={<LoadingState label="Setting up your check-in" />}>
-      <DayMapContent />
-    </Suspense>
-  );
-}
-
-function DayMapContent() {
   const router = useRouter();
-  const searchParams = useSearchParams();
-  const sensations = useMemo(
-    () => (searchParams.get("sensations") ?? "").split(",").filter(Boolean),
-    [searchParams]
-  );
-
+  const [sensations] = useState<string[]>(() => getSessionSensations());
   const [stepIndex, setStepIndex] = useState(0);
   const [answers, setAnswers] = useState<DayMapAnswer[]>([]);
   const [finishing, setFinishing] = useState(false);
+
   const step = DAY_MAP_STEPS[stepIndex];
 
   async function choose(option: { pattern: DayMapAnswer["pattern"]; weights: DayMapAnswer["weights"] }) {
@@ -43,13 +32,13 @@ function DayMapContent() {
     setFinishing(true);
     const result = scoreDayMap(sensations, nextAnswers, false);
     saveDayMapResult(result);
+    clearSessionSensations();
     try {
       await apiPost("/api/daymap", {
         pattern: result.primaryPattern,
         loadPercent: result.loadPercent,
       });
     } catch {
-      // Aggregate sync is best-effort; the on-device result is already saved.
     }
     router.push("/results");
   }

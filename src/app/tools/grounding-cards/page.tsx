@@ -1,8 +1,10 @@
 "use client";
 
-import { useState } from "react";
+import { Suspense, useState } from "react";
 import Link from "next/link";
-import { Button, Card, ProgressDots } from "@/components/ui";
+import { useSearchParams } from "next/navigation";
+import { Button, Card, LoadingState, ProgressDots } from "@/components/ui";
+import { RegulationRecheck } from "@/components/RegulationRecheck";
 
 const PROMPTS = [
   "Name three things you can see right now.",
@@ -13,6 +15,16 @@ const PROMPTS = [
 ];
 
 export default function GroundingCardsPage() {
+  return (
+    <Suspense fallback={<LoadingState />}>
+      <GroundingCardsContent />
+    </Suspense>
+  );
+}
+
+function GroundingCardsContent() {
+  const searchParams = useSearchParams();
+  const fromResults = searchParams.get("from") === "results";
   const [index, setIndex] = useState(0);
   const [done, setDone] = useState<number[]>([]);
 
@@ -59,6 +71,8 @@ export default function GroundingCardsPage() {
           Next
         </Button>
       )}
+
+      {finished && fromResults && <RegulationRecheck toolId="grounding-cards" />}
 
       <Link
         href="/tools"

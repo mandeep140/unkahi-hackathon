@@ -7,14 +7,13 @@ interface Analytics {
   totalParticipants: number;
   activeParticipants: number;
   checkinCount: number;
-  journalCount: number;
   assessmentCount: number;
   avgMood: number;
   bandCounts: Record<string, number>;
   patternCounts: Record<string, number>;
   avgLoad: number;
   dayMapCount: number;
-  trend: { date: string; checkins: number; journalEntries: number }[];
+  trend: { date: string; checkins: number }[];
 }
 
 export default function OrgPage() {
@@ -29,7 +28,7 @@ export default function OrgPage() {
   return (
     <div className="flex flex-col gap-8">
       <PageHeader
-        eyebrow="SUPER ADMIN PAGE!!" // development ke liye unprotected hai. right now db is not connected for cloud syncing of this data. This is a hackathon prototype.
+        eyebrow="Organization view · unauthenticated prototype"
         title="A group overview"
         description="Only general patterns across everyone, never a single person's words or answers. This view is for programs and cohorts, not individuals."
       />
@@ -82,10 +81,6 @@ export default function OrgPage() {
                   <span className="text-muted">Check-ins</span>
                   <span>{analytics.checkinCount}</span>
                 </div>
-                <div className="flex justify-between">
-                  <span className="text-muted">Journal entries</span>
-                  <span>{analytics.journalCount}</span>
-                </div>
               </div>
             </Card>
 
@@ -132,7 +127,6 @@ export default function OrgPage() {
                 >
                   <span className="text-muted">{day.date}</span>
                   <span>{day.checkins} check-ins</span>
-                  <span>{day.journalEntries} journal entries</span>
                 </div>
               ))}
             </div>

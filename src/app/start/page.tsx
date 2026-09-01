@@ -3,6 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { BODY_SENSATIONS } from "@/lib/daymap";
+import { setSessionSensations } from "@/lib/sessionState";
 import { Button, Card, PageHeader, SectionTitle } from "@/components/ui";
 
 export default function StartPage() {
@@ -18,8 +19,8 @@ export default function StartPage() {
 
   function proceed() {
     setProceeding(true);
-    const params = new URLSearchParams({ sensations: selected.join(",") });
-    router.push(`/day-map?${params.toString()}`);
+    setSessionSensations(selected);
+    router.push("/day-map");
   }
 
   return (
@@ -29,6 +30,11 @@ export default function StartPage() {
         title="First, how does your body feel right now?"
         description="Pick anything that fits. It's fine to pick none, or several. There's no need to explain or overthink it."
       />
+
+      <p className="text-[13px] text-muted -mt-2">
+        Private by default — this is processed on this device. Only a small
+        summary signal is ever used for the optional group program view.
+      </p>
 
       <Card>
         <SectionTitle>You can select more than one</SectionTitle>

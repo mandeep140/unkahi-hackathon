@@ -1,10 +1,22 @@
 "use client";
 
-import { useState } from "react";
+import { Suspense, useState } from "react";
 import Link from "next/link";
-import { Button, Card, TextArea } from "@/components/ui";
+import { useSearchParams } from "next/navigation";
+import { Button, Card, LoadingState, TextArea } from "@/components/ui";
+import { RegulationRecheck } from "@/components/RegulationRecheck";
 
 export default function ReleaseNotePage() {
+  return (
+    <Suspense fallback={<LoadingState />}>
+      <ReleaseNoteContent />
+    </Suspense>
+  );
+}
+
+function ReleaseNoteContent() {
+  const searchParams = useSearchParams();
+  const fromResults = searchParams.get("from") === "results";
   const [text, setText] = useState("");
   const [releasing, setReleasing] = useState(false);
   const [released, setReleased] = useState(false);
@@ -55,6 +67,8 @@ export default function ReleaseNotePage() {
       <Button onClick={release} disabled={!text.trim()} loading={releasing} className="w-fit">
         {releasing ? "Letting go..." : "Let it go"}
       </Button>
+
+      {released && fromResults && <RegulationRecheck toolId="release-note" />}
 
       <Link
         href="/tools"

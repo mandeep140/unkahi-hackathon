@@ -5,8 +5,8 @@ const FEATURES = [
   {
     icon: "◉",
     tone: "accent" as const,
-    title: "Stays on your device",
-    body: "What you share stays in this browser. If you're ever part of a group program, only a general summary is shared, never your own words.",
+    title: "Private by default",
+    body: "The main check-in is processed on this device. If you're ever part of a group program, only a small summary signal is shared, never your own words.",
   },
   {
     icon: "◐",
@@ -85,6 +85,17 @@ export default function Home() {
       >
         Looking for someone to talk to right now?
       </Link>
+
+      <p className="text-[13px] text-muted max-w-md relative">
+        The check-in, results, tools, and journal above stay on this device.
+        A couple of simpler pages (mood check-in, weekly assessment) are a
+        separate, secondary module and store entries on the server instead
+        — see{" "}
+        <Link href="/resources" className="underline underline-offset-4 hover:text-accent-strong">
+          resources
+        </Link>{" "}
+        for details.
+      </p>
     </div>
   );
 }

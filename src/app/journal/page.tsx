@@ -1,68 +1,40 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { apiDelete, apiGet, apiPost } from "@/lib/client";
-import { Badge, Button, Card, EmptyState, PageHeader, SectionTitle, TextArea, Skeleton } from "@/components/ui";
-import type { JournalEntry } from "@/lib/types";
-
-async function fetchEntries(): Promise<JournalEntry[]> {
-  const data = await apiGet<{ entries: JournalEntry[] }>("/api/journal");
-  return data.entries;
-}
+import { useState } from "react";
+import { Badge, Button, Card, EmptyState, PageHeader, SectionTitle, TextArea } from "@/components/ui";
+import { addJournalEntry, deleteJournalEntry, getJournalEntries, type JournalEntry } from "@/lib/localStore";
+import { analyzeSentiment } from "@/lib/signals";
 
 export default function JournalPage() {
-  const [entries, setEntries] = useState<JournalEntry[]>([]);
+  const [entries, setEntries] = useState<JournalEntry[]>(() => getJournalEntries());
   const [text, setText] = useState("");
   const [saving, setSaving] = useState(false);
-  const [loading, setLoading] = useState(true);
-  const [refreshToken, setRefreshToken] = useState(0);
   const [justSaved, setJustSaved] = useState(false);
   const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
-  const [deletingId, setDeletingId] = useState<string | null>(null);
 
-  useEffect(() => {
-    let active = true;
-    fetchEntries().then((data) => {
-      if (active) {
-        setEntries(data);
-        setLoading(false);
-      }
-    });
-    return () => {
-      active = false;
-    };
-  }, [refreshToken]);
-
-  async function handleSave() {
+  function handleSave() {
     if (!text.trim()) return;
     setSaving(true);
-    try {
-      await apiPost("/api/journal", { text });
-      setText("");
-      setRefreshToken((t) => t + 1);
-      setJustSaved(true);
-      setTimeout(() => setJustSaved(false), 2500);
-    } finally {
-      setSaving(false);
-    }
+    const sentiment = analyzeSentiment(text.trim());
+    addJournalEntry(text.trim(), sentiment);
+    setEntries(getJournalEntries());
+    setText("");
+    setSaving(false);
+    setJustSaved(true);
+    setTimeout(() => setJustSaved(false), 2500);
   }
 
-  async function handleDelete(id: string) {
-    setDeletingId(id);
-    try {
-      await apiDelete(`/api/journal?id=${encodeURIComponent(id)}`);
-      setEntries((prev) => prev.filter((e) => e.id !== id));
-      setConfirmDeleteId(null);
-    } finally {
-      setDeletingId(null);
-    }
+  function handleDelete(id: string) {
+    deleteJournalEntry(id);
+    setEntries(getJournalEntries());
+    setConfirmDeleteId(null);
   }
 
   return (
     <div className="flex flex-col gap-8">
       <PageHeader
         title="A space just for you"
-        description="Write whatever comes to mind, without worrying about how it sounds. This stays private to this device."
+        description="Write whatever comes to mind, without worrying about how it sounds. This stays on this device."
       />
 
       <Card>
@@ -85,20 +57,7 @@ export default function JournalPage() {
 
       <div>
         <SectionTitle>What you&apos;ve written before</SectionTitle>
-        {loading ? (
-          <div className="flex flex-col gap-3">
-            {[0, 1, 2].map((i) => (
-              <Card key={i} className="flex flex-col gap-2.5">
-                <div className="flex items-center justify-between">
-                  <Skeleton className="h-3 w-28" />
-                  <Skeleton className="h-5 w-16 rounded-full" />
-                </div>
-                <Skeleton className="h-4 w-full" />
-                <Skeleton className="h-4 w-3/4" />
-              </Card>
-            ))}
-          </div>
-        ) : entries.length === 0 ? (
+        {entries.length === 0 ? (
           <EmptyState
             title="Nothing here yet."
             description="Whenever you're ready, this is a good place to start."
@@ -117,10 +76,9 @@ export default function JournalPage() {
                       <div className="flex items-center gap-1.5">
                         <button
                           onClick={() => handleDelete(entry.id)}
-                          disabled={deletingId === entry.id}
-                          className="text-[13px] font-medium text-white bg-danger rounded-full px-3 py-1.5 hover:opacity-90 transition-opacity focus-ring disabled:opacity-60"
+                          className="text-[13px] font-medium text-white bg-danger rounded-full px-3 py-1.5 hover:opacity-90 transition-opacity focus-ring"
                         >
-                          {deletingId === entry.id ? "Removing..." : "Confirm"}
+                          Confirm
                         </button>
                         <button
                           onClick={() => setConfirmDeleteId(null)}

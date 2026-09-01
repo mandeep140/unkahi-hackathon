@@ -6,7 +6,7 @@ import Link from "next/link";
 import {
   DEEPER_STEPS,
   scoreDayMap,
-  combinePillarScores,
+  recomputeAfterDeeperPass,
   type DayMapAnswer,
 } from "@/lib/daymap";
 import { getLatestDayMapResult, updateLatestDayMapResult } from "@/lib/localStore";
@@ -84,16 +84,7 @@ export default function DeeperPassPage() {
 
     setFinishing(true);
     const deeperResult = scoreDayMap([], nextAnswers, true);
-    const combined = combinePillarScores(previousResult.pillarScores, deeperResult.pillarScores);
-    const combinedActivation = combined.reduce((a, b) => a + b, 0);
-    const combinedLoad = Math.max(8, Math.min(96, Math.round((combinedActivation / 46) * 100)));
-
-    const merged = {
-      ...previousResult,
-      pillarScores: combined,
-      loadPercent: combinedLoad,
-      hasDeeperPass: true,
-    };
+    const merged = recomputeAfterDeeperPass(previousResult, deeperResult);
     updateLatestDayMapResult(merged);
 
     try {
@@ -102,7 +93,6 @@ export default function DeeperPassPage() {
         loadPercent: merged.loadPercent,
       });
     } catch {
-      // best-effort aggregate sync
     }
     router.push("/results");
   }

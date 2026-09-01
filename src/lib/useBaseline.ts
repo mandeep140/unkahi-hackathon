@@ -8,20 +8,21 @@ export interface BaselineInfo {
   stdDev: number | null;
   streak: number;
   isDeviation: boolean;
+  sampleSize: number;
 }
 
 function computeBaseline(): BaselineInfo {
-  const results = getDayMapResults();
+  const results = getDayMapResults().filter((r) => r.hasSignal);
   if (results.length === 0) {
-    return { average: null, stdDev: null, streak: 0, isDeviation: false };
+    return { average: null, stdDev: null, streak: 0, isDeviation: false, sampleSize: 0 };
   }
 
   const loads = results.map((r) => r.loadPercent);
-  const average =
-    Math.round((loads.reduce((a, b) => a + b, 0) / loads.length) * 10) / 10;
+
+  const exactMean = loads.reduce((a, b) => a + b, 0) / loads.length;
   const variance =
-    loads.reduce((sum, v) => sum + (v - average) ** 2, 0) / loads.length;
-  const stdDev = Math.round(Math.sqrt(variance) * 10) / 10;
+    loads.reduce((sum, v) => sum + (v - exactMean) ** 2, 0) / loads.length;
+  const exactStdDev = Math.sqrt(variance);
 
   let streak = 1;
   for (let i = 1; i < results.length; i++) {
@@ -38,9 +39,15 @@ function computeBaseline(): BaselineInfo {
   }
 
   const latest = loads[0];
-  const isDeviation = stdDev > 0 && Math.abs(latest - average) > stdDev * 1.25;
+  const isDeviation = exactStdDev > 0 && Math.abs(latest - exactMean) > exactStdDev * 1.25;
 
-  return { average, stdDev, streak, isDeviation };
+  return {
+    average: Math.round(exactMean * 10) / 10,
+    stdDev: Math.round(exactStdDev * 10) / 10,
+    streak,
+    isDeviation,
+    sampleSize: results.length,
+  };
 }
 
 export function useBaseline(): BaselineInfo {

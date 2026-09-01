@@ -1,8 +1,10 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import Link from "next/link";
-import { Button, Card } from "@/components/ui";
+import { useSearchParams } from "next/navigation";
+import { Button, Card, LoadingState } from "@/components/ui";
+import { RegulationRecheck } from "@/components/RegulationRecheck";
 
 const PHASES = [
   { label: "Breathe in", seconds: 4 },
@@ -11,6 +13,16 @@ const PHASES = [
 ];
 
 export default function PacedBreathingPage() {
+  return (
+    <Suspense fallback={<LoadingState />}>
+      <PacedBreathingContent />
+    </Suspense>
+  );
+}
+
+function PacedBreathingContent() {
+  const searchParams = useSearchParams();
+  const fromResults = searchParams.get("from") === "results";
   const [running, setRunning] = useState(false);
   const [phaseIndex, setPhaseIndex] = useState(0);
   const [secondsLeft, setSecondsLeft] = useState(PHASES[0].seconds);
@@ -76,6 +88,8 @@ export default function PacedBreathingPage() {
           {running ? "Pause" : "Start"}
         </Button>
       </Card>
+
+      {fromResults && <RegulationRecheck toolId="paced-breathing" />}
 
       <Link
         href="/tools"

@@ -4,7 +4,6 @@ import { randomUUID } from "crypto";
 import type {
   UserProfile,
   CheckIn,
-  JournalEntry,
   AssessmentResponse,
 } from "./types";
 
@@ -27,7 +26,6 @@ export interface DayMapSubmission {
 interface Database {
   users: UserProfile[];
   checkins: CheckIn[];
-  journalEntries: JournalEntry[];
   assessmentResponses: AssessmentResponse[];
   events: DomainEvent[];
   dayMapSubmissions: DayMapSubmission[];
@@ -40,7 +38,6 @@ function emptyDb(): Database {
   return {
     users: [],
     checkins: [],
-    journalEntries: [],
     assessmentResponses: [],
     events: [],
     dayMapSubmissions: [],
@@ -118,15 +115,6 @@ function seedDatabase(): Database {
         type: "ASSESSMENT_COMPLETED",
         userId: uid,
         createdAt: ts,
-      });
-    }
-
-    if (i % 3 === 0) {
-      db.events.push({
-        id: randomUUID(),
-        type: "JOURNAL_ENTRY_CREATED",
-        userId: uid,
-        createdAt: daysAgo(1 + i),
       });
     }
 
@@ -224,49 +212,6 @@ export function listCheckIns(userId: string): CheckIn[] {
     .sort((a, b) => a.createdAt.localeCompare(b.createdAt));
 }
 
-export function addJournalEntry(
-  userId: string,
-  text: string,
-  sentiment: JournalEntry["sentiment"]
-): JournalEntry {
-  const db = readDb();
-  const entry: JournalEntry = {
-    id: randomUUID(),
-    userId,
-    text,
-    sentiment,
-    createdAt: new Date().toISOString(),
-  };
-  db.journalEntries.push(entry);
-  db.events.push({
-    id: randomUUID(),
-    type: "JOURNAL_ENTRY_CREATED",
-    userId,
-    createdAt: entry.createdAt,
-    metadata: { sentiment },
-  });
-  writeDb(db);
-  return entry;
-}
-
-export function listJournalEntries(userId: string): JournalEntry[] {
-  const db = readDb();
-  return db.journalEntries
-    .filter((j) => j.userId === userId)
-    .sort((a, b) => b.createdAt.localeCompare(a.createdAt));
-}
-
-export function deleteJournalEntry(userId: string, entryId: string): boolean {
-  const db = readDb();
-  const index = db.journalEntries.findIndex(
-    (j) => j.id === entryId && j.userId === userId
-  );
-  if (index === -1) return false;
-  db.journalEntries.splice(index, 1);
-  writeDb(db);
-  return true;
-}
-
 export function addAssessmentResponse(
   userId: string,
   assessmentId: string,
@@ -352,7 +297,6 @@ export function getAggregateAnalytics() {
 
   const totalParticipants = new Set(db.users.map((u) => u.id)).size;
   const checkinCount = db.checkins.length;
-  const journalCount = db.journalEntries.length;
   const assessmentCount = db.assessmentResponses.length;
 
   const moodValues = db.checkins.map((c) => c.mood);
@@ -378,23 +322,19 @@ export function getAggregateAnalytics() {
         )
       : 0;
 
-  const trend: { date: string; checkins: number; journalEntries: number }[] = [];
+  const trend: { date: string; checkins: number }[] = [];
   for (let i = 6; i >= 0; i--) {
     const day = new Date(now);
     day.setDate(day.getDate() - i);
     const key = day.toISOString().slice(0, 10);
     const checkins = db.checkins.filter((c) => c.createdAt.slice(0, 10) === key).length;
-    const journalEntries = db.journalEntries.filter(
-      (j) => j.createdAt.slice(0, 10) === key
-    ).length;
-    trend.push({ date: key, checkins, journalEntries });
+    trend.push({ date: key, checkins });
   }
 
   return {
     totalParticipants,
     activeParticipants: activeUserIds.size,
     checkinCount,
-    journalCount,
     assessmentCount,
     avgMood,
     bandCounts,

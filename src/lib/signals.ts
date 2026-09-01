@@ -1,4 +1,4 @@
-import type { CheckIn, JournalEntry, Recommendation } from "./types";
+import type { CheckIn, Recommendation } from "./types";
 
 const NEGATIVE_WORDS = [
   "sad",
@@ -28,7 +28,7 @@ const POSITIVE_WORDS = [
   "good",
 ];
 
-export function analyzeSentiment(text: string): JournalEntry["sentiment"] {
+export function analyzeSentiment(text: string): "low" | "neutral" | "positive" {
   const lower = text.toLowerCase();
   let score = 0;
   for (const word of NEGATIVE_WORDS) {
@@ -103,16 +103,15 @@ const RECOMMENDATION_LIBRARY: Recommendation[] = [
 export function buildRecommendations(params: {
   moodDirection: MoodDirection;
   band?: string;
-  lastSentiment?: JournalEntry["sentiment"];
 }): Recommendation[] {
-  const { moodDirection, band, lastSentiment } = params;
+  const { moodDirection, band } = params;
   const picks: Recommendation[] = [];
 
   if (band === "strained" || moodDirection === "down") {
     picks.push(RECOMMENDATION_LIBRARY[0]);
     picks.push(RECOMMENDATION_LIBRARY[2]);
     picks.push(RECOMMENDATION_LIBRARY[4]);
-  } else if (band === "mixed" || lastSentiment === "low") {
+  } else if (band === "mixed") {
     picks.push(RECOMMENDATION_LIBRARY[1]);
     picks.push(RECOMMENDATION_LIBRARY[2]);
   } else {

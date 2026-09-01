@@ -1,4 +1,8 @@
+export const SCORING_VERSION = "v1";
+
 export type NervousSystemPattern = "fight" | "flight" | "freeze" | "fawn";
+
+export type ReflectionStrength = "low" | "moderate" | "strong";
 
 export type PillarId =
   | "alert-scanning"
@@ -22,6 +26,7 @@ export interface PillarDefinition {
   icon: string;
   shortLabel: string;
   title: string;
+  subtitle: string;
   description: string;
   tip: string;
   toolId: string;
@@ -33,6 +38,7 @@ export const PILLARS: Record<PillarId, PillarDefinition> = {
     icon: "◉",
     shortLabel: "Alert scanning",
     title: "Staying on alert",
+    subtitle: "Staying highly alert to what could go wrong.",
     description:
       "Part of you may be scanning for signs of trouble, even in ordinary moments. This kept you safe once, but it takes real energy to sustain.",
     tip: "Try a slow paced-breathing pass to let your body register that this moment is not an emergency.",
@@ -43,6 +49,7 @@ export const PILLARS: Record<PillarId, PillarDefinition> = {
     icon: "◐",
     shortLabel: "Boundary softening",
     title: "Softening your own edges",
+    subtitle: "Putting other people's needs ahead of your own.",
     description:
       "You may be accommodating other people's needs ahead of your own to keep things calm, even when it costs you something.",
     tip: "Practice a small, low-risk boundary today — even just saying 'let me think about it' before agreeing.",
@@ -53,6 +60,7 @@ export const PILLARS: Record<PillarId, PillarDefinition> = {
     icon: "◒",
     shortLabel: "Carried guilt",
     title: "Carrying blame that isn't fully yours",
+    subtitle: "Holding onto blame that may not fully belong to you.",
     description:
       "Holding onto responsibility for things outside your control can be a way of trying to feel some power over pain that otherwise feels random.",
     tip: "Try writing the blame story down and letting it go, rather than replaying it silently.",
@@ -63,6 +71,7 @@ export const PILLARS: Record<PillarId, PillarDefinition> = {
     icon: "◌",
     shortLabel: "Somatic drift",
     title: "Drifting from the body",
+    subtitle: "Feeling disconnected, numb, floaty, or far from your body.",
     description:
       "Feeling numb, floaty, or far away is a protective buffer your nervous system can reach for when things feel like too much.",
     tip: "A short grounding pass — naming a few things you can see, hear, and touch — can help bring you back gently.",
@@ -73,6 +82,7 @@ export const PILLARS: Record<PillarId, PillarDefinition> = {
     icon: "◇",
     shortLabel: "Relational pullback",
     title: "Pulling away from others",
+    subtitle: "Wanting more distance from other people.",
     description:
       "Stepping back from people can feel safer when connection has previously come with risk. It offers relief, but can also leave you more alone with hard feelings.",
     tip: "You don't need to force closeness today. Even noticing you feel safe in your own company counts as progress.",
@@ -83,6 +93,7 @@ export const PILLARS: Record<PillarId, PillarDefinition> = {
     icon: "◧",
     shortLabel: "Control seeking",
     title: "Reaching for control",
+    subtitle: "Needing things to feel predictable before you can relax.",
     description:
       "You may be trying to manage your surroundings closely. This kind of tight planning can bring a feeling of predictability when things otherwise feel uncertain.",
     tip: "Let one small, low-stakes thing stay slightly out of order today, and notice that you are still okay.",
@@ -299,11 +310,17 @@ export interface DayMapAnswer {
   weights: PillarVector;
 }
 
+export type PatternWeights = Record<NervousSystemPattern, number>;
+
 export interface DayMapResult {
+  scoringVersion: string;
   loadPercent: number;
   primaryPattern: NervousSystemPattern;
+  patternWeights: PatternWeights;
   pillarScores: PillarVector;
   pillars: PillarId[];
+  hasSignal: boolean;
+  reflectionStrength: ReflectionStrength;
   hasDeeperPass: boolean;
   createdAt: string;
 }
@@ -317,6 +334,33 @@ const PATTERN_LABELS: Record<NervousSystemPattern, string> = {
 
 export function patternLabel(pattern: NervousSystemPattern): string {
   return PATTERN_LABELS[pattern];
+}
+
+const PATTERN_CHIP_LABELS: Record<NervousSystemPattern, string> = {
+  fight: "More activated today",
+  flight: "Seeking space today",
+  freeze: "More still today",
+  fawn: "More accommodating today",
+};
+
+export function patternChipLabel(pattern: NervousSystemPattern): string {
+  return PATTERN_CHIP_LABELS[pattern];
+}
+
+const PATTERN_STATE_CLAUSES: Record<NervousSystemPattern, string> = {
+  fight: "leaning toward a more alert, activated pattern today",
+  flight: "leaning toward wanting a bit more distance or space today",
+  freeze: "leaning toward feeling still, distant, or shut down today",
+  fawn: "leaning toward accommodating others today",
+};
+
+export function patternStateClause(pattern: NervousSystemPattern): string {
+  return PATTERN_STATE_CLAUSES[pattern];
+}
+
+export function patternStateSentence(pattern: NervousSystemPattern): string {
+  const clause = PATTERN_STATE_CLAUSES[pattern];
+  return `Your responses are ${clause}.`;
 }
 
 function computePillarScores(
@@ -334,16 +378,15 @@ function computePillarScores(
   return total;
 }
 
+function emptyPatternWeights(): PatternWeights {
+  return { fight: 0, flight: 0, freeze: 0, fawn: 0 };
+}
+
 function computePatternWeight(
   sensations: string[],
   answers: DayMapAnswer[]
-): Record<NervousSystemPattern, number> {
-  const weight: Record<NervousSystemPattern, number> = {
-    fight: 0,
-    flight: 0,
-    freeze: 0,
-    fawn: 0,
-  };
+): PatternWeights {
+  const weight = emptyPatternWeights();
   for (const id of sensations) {
     const sensation = BODY_SENSATIONS.find((s) => s.id === id);
     if (sensation) weight[sensation.pattern] += 1;
@@ -354,37 +397,95 @@ function computePatternWeight(
   return weight;
 }
 
+export function combinePatternWeights(
+  a: PatternWeights | undefined,
+  b: PatternWeights | undefined
+): PatternWeights {
+  const left = a ?? emptyPatternWeights();
+  const right = b ?? emptyPatternWeights();
+  return {
+    fight: left.fight + right.fight,
+    flight: left.flight + right.flight,
+    freeze: left.freeze + right.freeze,
+    fawn: left.fawn + right.fawn,
+  };
+}
+
+function pickPrimaryPattern(weights: PatternWeights): NervousSystemPattern {
+  const entries = Object.entries(weights) as [NervousSystemPattern, number][];
+  entries.sort((a, b) => b[1] - a[1]);
+  return entries[0]?.[0] ?? "flight";
+}
+
+function topPillars(pillarScores: PillarVector): PillarId[] {
+  return PILLAR_ORDER
+    .map((id, index) => ({ id, score: pillarScores[index] }))
+    .sort((a, b) => b.score - a.score)
+    .filter((p) => p.score > 0)
+    .slice(0, 2)
+    .map((p) => p.id);
+}
+
+function computeReflectionStrength(
+  pillarScores: PillarVector,
+  hasSignal: boolean
+): ReflectionStrength {
+  if (!hasSignal) return "low";
+  const sorted = [...pillarScores].sort((a, b) => b - a);
+  const top = sorted[0] ?? 0;
+  const second = sorted[1] ?? 0;
+  const separation = top - second;
+  const activePillars = pillarScores.filter((v) => v > 0).length;
+
+  if (top >= 6 && separation >= 3) return "strong";
+  if (top >= 3 && (separation >= 1 || activePillars <= 3)) return "moderate";
+  return "low";
+}
+
+export function reflectionStrengthLabel(strength: ReflectionStrength): string {
+  if (strength === "strong") return "Strong";
+  if (strength === "moderate") return "Moderate";
+  return "Low";
+}
+
+export function reflectionStrengthDescription(strength: ReflectionStrength): string {
+  if (strength === "strong") {
+    return "Several of your answers pointed the same direction, fairly clearly.";
+  }
+  if (strength === "moderate") {
+    return "A few of your answers pointed somewhere, but not overwhelmingly.";
+  }
+  return "Your answers didn't lean very strongly in any one direction.";
+}
+
 export function scoreDayMap(
   sensations: string[],
   answers: DayMapAnswer[],
   hasDeeperPass: boolean = false
 ): DayMapResult {
   const pillarScores = computePillarScores(sensations, answers);
-  const patternWeight = computePatternWeight(sensations, answers);
+  const patternWeights = computePatternWeight(sensations, answers);
+  const totalActivation = pillarScores.reduce((a, b) => a + b, 0);
+  const hasSignal = totalActivation > 0;
 
   const assumedMax = hasDeeperPass ? 46 : 26;
-  const totalActivation = pillarScores.reduce((a, b) => a + b, 0);
-  const loadPercent = Math.max(
-    8,
-    Math.min(96, Math.round((totalActivation / assumedMax) * 100))
-  );
+  const loadPercent = hasSignal
+    ? Math.max(8, Math.min(96, Math.round((totalActivation / assumedMax) * 100)))
+    : 0;
 
-  const primaryPattern = (Object.entries(patternWeight).sort(
-    (a, b) => b[1] - a[1]
-  )[0]?.[0] ?? "flight") as NervousSystemPattern;
-
-  const pillars = PILLAR_ORDER
-    .map((id, index) => ({ id, score: pillarScores[index] }))
-    .sort((a, b) => b.score - a.score)
-    .filter((p) => p.score > 0)
-    .slice(0, 2)
-    .map((p) => p.id);
+  const primaryPattern = hasSignal ? pickPrimaryPattern(patternWeights) : "flight";
+  const pillars = hasSignal ? topPillars(pillarScores) : [];
+  const reflectionStrength = computeReflectionStrength(pillarScores, hasSignal);
 
   return {
+    scoringVersion: SCORING_VERSION,
     loadPercent,
     primaryPattern,
+    patternWeights,
     pillarScores,
-    pillars: pillars.length > 0 ? pillars : ["control-seeking"],
+    pillars,
+    hasSignal,
+    reflectionStrength,
     hasDeeperPass,
     createdAt: new Date().toISOString(),
   };
@@ -392,6 +493,82 @@ export function scoreDayMap(
 
 export function combinePillarScores(a: PillarVector, b: PillarVector): PillarVector {
   return addVectors(a, b);
+}
+
+export function recomputeAfterDeeperPass(
+  baseResult: DayMapResult,
+  deeperResult: DayMapResult
+): DayMapResult {
+  const pillarScores = combinePillarScores(baseResult.pillarScores, deeperResult.pillarScores);
+  const patternWeights = combinePatternWeights(baseResult.patternWeights, deeperResult.patternWeights);
+  const totalActivation = pillarScores.reduce((a, b) => a + b, 0);
+  const hasSignal = totalActivation > 0;
+  const loadPercent = hasSignal
+    ? Math.max(8, Math.min(96, Math.round((totalActivation / 46) * 100)))
+    : 0;
+  const primaryPattern = hasSignal ? pickPrimaryPattern(patternWeights) : "flight";
+  const pillars = hasSignal ? topPillars(pillarScores) : [];
+  const reflectionStrength = computeReflectionStrength(pillarScores, hasSignal);
+
+  return {
+    scoringVersion: SCORING_VERSION,
+    loadPercent,
+    primaryPattern,
+    patternWeights,
+    pillarScores,
+    pillars,
+    hasSignal,
+    reflectionStrength,
+    hasDeeperPass: true,
+    createdAt: baseResult.createdAt,
+  };
+}
+
+export function averagePillarVector(vectors: PillarVector[]): PillarVector | null {
+  if (vectors.length === 0) return null;
+  const sum = vectors.reduce((acc, v) => addVectors(acc, v), emptyVector());
+  return sum.map((v) => v / vectors.length) as PillarVector;
+}
+
+export interface PillarShift {
+  pillar: PillarId;
+  direction: "higher" | "lower";
+}
+
+const PILLAR_SHIFT_THRESHOLD = 1;
+
+export function comparePillarsToHistory(
+  current: PillarVector,
+  historyAverage: PillarVector
+): PillarShift | null {
+  let bestIndex = -1;
+  let bestDiff = 0;
+  for (let i = 0; i < PILLAR_ORDER.length; i++) {
+    const diff = current[i] - historyAverage[i];
+    if (Math.abs(diff) > Math.abs(bestDiff)) {
+      bestDiff = diff;
+      bestIndex = i;
+    }
+  }
+  if (bestIndex === -1 || Math.abs(bestDiff) < PILLAR_SHIFT_THRESHOLD) return null;
+  return {
+    pillar: PILLAR_ORDER[bestIndex],
+    direction: bestDiff > 0 ? "higher" : "lower",
+  };
+}
+
+export function explainResult(result: DayMapResult): string {
+  if (!result.hasSignal || result.pillars.length === 0) {
+    return "Your answers didn't lean strongly toward any particular theme, so there isn't much to point to here — and that's a valid result too.";
+  }
+  const top = PILLARS[result.pillars[0]];
+  const second = result.pillars[1] ? PILLARS[result.pillars[1]] : null;
+  const clause = patternStateClause(result.primaryPattern);
+
+  if (second) {
+    return `Some of your responses pointed toward ${top.title.toLowerCase()} and ${second.title.toLowerCase()}. Those signals contributed most to ${top.shortLabel} and ${second.shortLabel}. Overall, your responses are ${clause}.`;
+  }
+  return `Some of your responses pointed toward ${top.title.toLowerCase()}. That signal contributed most to ${top.shortLabel}. Overall, your responses are ${clause}.`;
 }
 
 export interface ToolDefinition {

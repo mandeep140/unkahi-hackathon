@@ -59,6 +59,18 @@ export default function ResourcesPage() {
           ready to help.
         </p>
       </Card>
+
+      <Card className="bg-surface-muted border-transparent">
+        <SectionTitle>Two parts of this app, two storage models</SectionTitle>
+        <p className="text-[14px] text-muted leading-relaxed">
+          The main check-in (start, day map, results, my data) and the
+          journal are processed on this device only. The simpler Check-in
+          and Weekly assessment pages are a separate, secondary module and
+          store their entries on the server for this prototype, since they
+          feed the group-level organization dashboard. Both are described in
+          full in the project README.
+        </p>
+      </Card>
     </div>
   );
 }
