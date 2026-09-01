@@ -22,13 +22,14 @@ const MORE_LINKS = [
 export function NavBar() {
   const pathname = usePathname();
   const [moreOpen, setMoreOpen] = useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   return (
     <header className="nav-surface sticky top-0 z-30 w-full backdrop-blur-lg">
-      <div className="max-w-2xl mx-auto px-5 sm:px-6 py-4 flex items-center justify-between gap-3">
+      <div className="max-w-2xl mx-auto px-4 sm:px-6 py-3.5 sm:py-4 flex items-center justify-between gap-2 sm:gap-3">
         <Link
           href="/"
-          className="flex items-center gap-2 text-[17px] font-semibold tracking-tight text-accent-strong focus-ring rounded-sm shrink-0"
+          className="flex items-center gap-2 text-[16px] sm:text-[17px] font-semibold tracking-tight text-accent-strong focus-ring rounded-sm shrink-0"
         >
           <span
             aria-hidden
@@ -93,29 +94,42 @@ export function NavBar() {
           </div>
         </nav>
 
-        <div className="shrink-0">
+        <div className="flex items-center gap-2 shrink-0">
           <QuickExit />
+          <button
+            onClick={() => setMobileMenuOpen((v) => !v)}
+            aria-expanded={mobileMenuOpen}
+            aria-label="Open menu"
+            className="sm:hidden inline-flex items-center justify-center h-9 w-9 rounded-full text-foreground focus-ring active:bg-surface-muted transition-colors"
+          >
+            <span aria-hidden className="text-[18px]">
+              {mobileMenuOpen ? "✕" : "☰"}
+            </span>
+          </button>
         </div>
       </div>
 
-      <nav className="sm:hidden max-w-2xl mx-auto px-5 pb-3 flex gap-1.5 overflow-x-auto scrollbar-thin text-[13px]">
-        {[...PRIMARY_LINKS, ...MORE_LINKS].map((link) => {
-          const active = pathname === link.href || pathname?.startsWith(`${link.href}/`);
-          return (
-            <Link
-              key={link.href}
-              href={link.href}
-              className={`whitespace-nowrap rounded-full px-3 py-1.5 transition-colors focus-ring ${
-                active
-                  ? "bg-accent-soft text-accent-strong font-medium"
-                  : "text-muted hover:text-foreground hover:bg-surface-muted"
-              }`}
-            >
-              {link.label}
-            </Link>
-          );
-        })}
-      </nav>
+      {mobileMenuOpen && (
+        <nav className="sm:hidden max-w-2xl mx-auto px-4 pb-4 flex flex-col gap-1 border-t border-border/60 pt-3 animate-fade-up">
+          {[...PRIMARY_LINKS, ...MORE_LINKS].map((link) => {
+            const active = pathname === link.href || pathname?.startsWith(`${link.href}/`);
+            return (
+              <Link
+                key={link.href}
+                href={link.href}
+                onClick={() => setMobileMenuOpen(false)}
+                className={`rounded-xl px-3.5 py-3 text-[15px] transition-colors focus-ring ${
+                  active
+                    ? "bg-accent-soft text-accent-strong font-medium"
+                    : "text-foreground active:bg-surface-muted"
+                }`}
+              >
+                {link.label}
+              </Link>
+            );
+          })}
+        </nav>
+      )}
     </header>
   );
 }

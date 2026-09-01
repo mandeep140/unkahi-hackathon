@@ -19,7 +19,7 @@ export function FloatingHelp() {
   const [open, setOpen] = useState(false);
 
   return (
-    <div className="fixed bottom-5 right-4 sm:bottom-6 sm:right-6 z-40">
+    <div className="fixed bottom-4 right-4 sm:bottom-6 sm:right-6 z-40">
       {open && (
         <>
           <button
@@ -28,7 +28,7 @@ export function FloatingHelp() {
             onClick={() => setOpen(false)}
             className="fixed inset-0 z-40 cursor-default"
           />
-          <div className="menu-surface absolute bottom-[calc(100%+0.75rem)] right-0 z-50 w-60 p-2 flex flex-col gap-1 animate-fade-up">
+          <div className="menu-surface absolute bottom-[calc(100%+0.75rem)] right-0 z-50 w-[min(15rem,calc(100vw-2rem))] p-2 flex flex-col gap-1 animate-fade-up">
             <p className="text-[12px] font-medium text-muted uppercase tracking-wide px-2.5 pt-1.5 pb-1">
               Quick access
             </p>
@@ -68,13 +68,13 @@ export function FloatingHelp() {
         onClick={() => setOpen((v) => !v)}
         aria-expanded={open}
         aria-label="Quick access to help and safety resources"
-        className={`relative z-50 inline-flex items-center justify-center h-14 w-14 rounded-full border transition-all duration-200 focus-ring shadow-[var(--shadow-md)] active:scale-95 ${
+        className={`relative z-50 inline-flex items-center justify-center h-12 w-12 sm:h-14 sm:w-14 rounded-full border transition-all duration-200 focus-ring shadow-[var(--shadow-md)] active:scale-95 ${
           open
             ? "bg-clay-strong border-clay-strong text-white"
             : "bg-clay border-clay text-white hover:bg-clay-strong"
         }`}
       >
-        <span className="text-[20px]" aria-hidden>
+        <span className="text-[18px] sm:text-[20px]" aria-hidden>
           {open ? "✕" : "◈"}
         </span>
       </button>
