@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
-import { Card } from "@/components/ui";
+import { Button, Card } from "@/components/ui";
 
 export default function BilateralTonePage() {
   const [running, setRunning] = useState(false);
@@ -84,12 +84,9 @@ export default function BilateralTonePage() {
         </div>
       </Card>
 
-      <button
-        onClick={() => setRunning((r) => !r)}
-        className="px-5 py-2.5 rounded-full text-sm font-medium bg-accent text-accent-foreground hover:bg-accent-strong transition-colors focus-ring shadow-sm"
-      >
+      <Button onClick={() => setRunning((r) => !r)} className="w-fit">
         {running ? "Stop" : "Start"}
-      </button>
+      </Button>
 
       <Link
         href="/tools"

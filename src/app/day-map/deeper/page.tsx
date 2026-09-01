@@ -11,12 +11,13 @@ import {
 } from "@/lib/daymap";
 import { getLatestDayMapResult, updateLatestDayMapResult } from "@/lib/localStore";
 import { apiPost } from "@/lib/client";
-import { Button, Card, EmptyState, ProgressDots } from "@/components/ui";
+import { Button, Card, EmptyState, LoadingState, ProgressDots } from "@/components/ui";
 
 export default function DeeperPassPage() {
   const [started, setStarted] = useState(false);
   const [stepIndex, setStepIndex] = useState(0);
   const [answers, setAnswers] = useState<DayMapAnswer[]>([]);
+  const [finishing, setFinishing] = useState(false);
   const router = useRouter();
 
   const previous = getLatestDayMapResult();
@@ -52,7 +53,9 @@ export default function DeeperPassPage() {
           </p>
         </div>
         <div className="flex flex-col sm:flex-row gap-3">
-          <Button onClick={() => setStarted(true)}>Yes, let&apos;s continue</Button>
+          <Button onClick={() => setStarted(true)} className="page-transition">
+            Yes, let&apos;s continue
+          </Button>
           <Link
             href="/results"
             className="inline-flex items-center justify-center px-5 py-3 border border-border rounded-full text-[15px] font-medium bg-surface hover:border-accent hover:text-accent-strong transition-colors focus-ring"
@@ -79,6 +82,7 @@ export default function DeeperPassPage() {
       return;
     }
 
+    setFinishing(true);
     const deeperResult = scoreDayMap([], nextAnswers, true);
     const combined = combinePillarScores(previousResult.pillarScores, deeperResult.pillarScores);
     const combinedActivation = combined.reduce((a, b) => a + b, 0);
@@ -101,6 +105,10 @@ export default function DeeperPassPage() {
       // best-effort aggregate sync
     }
     router.push("/results");
+  }
+
+  if (finishing) {
+    return <LoadingState label="Combining this with your earlier answers" />;
   }
 
   return (

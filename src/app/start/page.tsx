@@ -8,6 +8,7 @@ import { Button, Card, PageHeader, SectionTitle } from "@/components/ui";
 export default function StartPage() {
   const router = useRouter();
   const [selected, setSelected] = useState<string[]>([]);
+  const [proceeding, setProceeding] = useState(false);
 
   function toggle(id: string) {
     setSelected((prev) =>
@@ -16,6 +17,7 @@ export default function StartPage() {
   }
 
   function proceed() {
+    setProceeding(true);
     const params = new URLSearchParams({ sensations: selected.join(",") });
     router.push(`/day-map?${params.toString()}`);
   }
@@ -54,8 +56,8 @@ export default function StartPage() {
         </div>
       </Card>
 
-      <Button onClick={proceed} className="w-full sm:w-fit">
-        {selected.length === 0 ? "None of these, continue" : "Continue"}
+      <Button onClick={proceed} loading={proceeding} className="w-full sm:w-fit">
+        {proceeding ? "Loading..." : selected.length === 0 ? "None of these, continue" : "Continue"}
       </Button>
     </div>
   );

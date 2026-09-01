@@ -21,10 +21,13 @@ export default function SafetyPlanPage() {
   const [copingSteps, setCopingSteps] = useState(initial?.copingSteps ?? "");
   const [trustedContact, setTrustedContact] = useState(initial?.trustedContact ?? "");
   const [saved, setSaved] = useState<SafetyPlan | null>(initial);
+  const [saving, setSaving] = useState(false);
 
   function handleSave() {
+    setSaving(true);
     saveSafetyPlan({ warningSigns, copingSteps, trustedContact });
     setSaved(getSafetyPlan());
+    setTimeout(() => setSaving(false), 400);
   }
 
   return (
@@ -121,8 +124,8 @@ export default function SafetyPlanPage() {
         />
       </Card>
 
-      <Button onClick={handleSave} className="w-fit">
-        Save this plan
+      <Button onClick={handleSave} loading={saving} className="w-fit">
+        {saving ? "Saving..." : "Save this plan"}
       </Button>
       {saved && (
         <p className="text-[13px] text-muted">

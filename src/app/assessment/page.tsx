@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { apiGet, apiPost } from "@/lib/client";
-import { Badge, Button, Card, PageHeader, SectionTitle } from "@/components/ui";
+import { Badge, Button, Card, PageHeader, SectionTitle, Skeleton } from "@/components/ui";
 import type { AssessmentDefinition, AssessmentResponse } from "@/lib/types";
 
 export default function AssessmentPage() {
@@ -46,7 +46,27 @@ export default function AssessmentPage() {
   }
 
   if (loading || !definition) {
-    return <p className="text-sm text-muted">Loading...</p>;
+    return (
+      <div className="flex flex-col gap-8">
+        <div>
+          <Skeleton className="h-3 w-40 mb-3" />
+          <Skeleton className="h-7 w-2/3 mb-2" />
+          <Skeleton className="h-4 w-full" />
+        </div>
+        <div className="flex flex-col gap-4">
+          {[0, 1, 2].map((i) => (
+            <Card key={i} className="flex flex-col gap-3">
+              <Skeleton className="h-3 w-1/2" />
+              <div className="flex flex-wrap gap-2">
+                <Skeleton className="h-8 w-20 rounded-full" />
+                <Skeleton className="h-8 w-24 rounded-full" />
+                <Skeleton className="h-8 w-16 rounded-full" />
+              </div>
+            </Card>
+          ))}
+        </div>
+      </div>
+    );
   }
 
   return (
@@ -80,9 +100,8 @@ export default function AssessmentPage() {
       </div>
 
       <Button
-        disabled={
-          Object.keys(answers).length !== definition.questions.length || submitting
-        }
+        disabled={Object.keys(answers).length !== definition.questions.length}
+        loading={submitting}
         onClick={handleSubmit}
         className="w-fit"
       >

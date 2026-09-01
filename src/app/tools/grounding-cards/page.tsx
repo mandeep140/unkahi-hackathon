@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { Card, ProgressDots } from "@/components/ui";
+import { Button, Card, ProgressDots } from "@/components/ui";
 
 const PROMPTS = [
   "Name three things you can see right now.",
@@ -55,12 +55,9 @@ export default function GroundingCardsPage() {
       </div>
 
       {!finished && (
-        <button
-          onClick={next}
-          className="px-5 py-2.5 rounded-full text-sm font-medium bg-accent text-accent-foreground hover:bg-accent-strong transition-colors focus-ring shadow-sm"
-        >
+        <Button onClick={next} className="w-fit">
           Next
-        </button>
+        </Button>
       )}
 
       <Link

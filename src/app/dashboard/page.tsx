@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { apiGet } from "@/lib/client";
-import { Card, PageHeader, SectionTitle, EmptyState } from "@/components/ui";
+import { Card, PageHeader, SectionTitle, EmptyState, Skeleton } from "@/components/ui";
 import type { CheckIn, Recommendation } from "@/lib/types";
 
 interface CheckInsResponse {
@@ -49,21 +49,24 @@ export default function DashboardPage() {
       <div className="grid gap-4 sm:grid-cols-2">
         <Card>
           <SectionTitle>This week, generally</SectionTitle>
-          <div className="flex items-baseline gap-2">
-            <p className="text-3xl font-semibold">
-              {checkinData?.trend.average ?? "—"}
-            </p>
-            {checkinData && (
-              <span className="text-lg text-accent" aria-hidden>
-                {DIRECTION_ICON[checkinData.trend.direction]}
-              </span>
-            )}
-          </div>
-          <p className="text-[14px] text-muted mt-1">
-            {checkinData
-              ? DIRECTION_LABEL[checkinData.trend.direction]
-              : "Loading..."}
-          </p>
+          {!checkinData ? (
+            <>
+              <Skeleton className="h-8 w-16 mb-2" />
+              <Skeleton className="h-3 w-24" />
+            </>
+          ) : (
+            <>
+              <div className="flex items-baseline gap-2">
+                <p className="text-3xl font-semibold">{checkinData.trend.average ?? "—"}</p>
+                <span className="text-lg text-accent" aria-hidden>
+                  {DIRECTION_ICON[checkinData.trend.direction]}
+                </span>
+              </div>
+              <p className="text-[14px] text-muted mt-1">
+                {DIRECTION_LABEL[checkinData.trend.direction]}
+              </p>
+            </>
+          )}
         </Card>
 
         <Card className="flex flex-col">
@@ -83,7 +86,14 @@ export default function DashboardPage() {
       <div>
         <SectionTitle>Something that might help</SectionTitle>
         {!recData ? (
-          <p className="text-[14px] text-muted">Loading...</p>
+          <div className="flex flex-col gap-3">
+            {[0, 1].map((i) => (
+              <Card key={i} className="flex flex-col gap-2">
+                <Skeleton className="h-4 w-1/2" />
+                <Skeleton className="h-3.5 w-full" />
+              </Card>
+            ))}
+          </div>
         ) : recData.recommendations.length === 0 ? (
           <EmptyState title="Nothing specific to suggest right now, and that's okay." />
         ) : (

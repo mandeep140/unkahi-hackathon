@@ -3,6 +3,7 @@ import { Atkinson_Hyperlegible } from "next/font/google";
 import "./globals.css";
 import { NavBar } from "@/components/NavBar";
 import { FloatingHelp } from "@/components/FloatingHelp";
+import { RouteTransition, TopLoader } from "@/components/RouteTransition";
 
 const atkinson = Atkinson_Hyperlegible({
   subsets: ["latin"],
@@ -20,9 +21,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="en" className={`h-full ${atkinson.variable}`}>
       <body className="bg-ambient min-h-full flex flex-col bg-background text-foreground text-[17px] leading-relaxed">
+        <TopLoader />
         <NavBar />
-        <main className="flex-1 w-full max-w-2xl mx-auto px-5 sm:px-6 py-10 sm:py-14 animate-fade-up">
-          {children}
+        <main className="flex-1 w-full max-w-2xl mx-auto px-5 sm:px-6 py-10 sm:py-14">
+          <RouteTransition>{children}</RouteTransition>
         </main>
         <footer className="w-full max-w-2xl mx-auto px-5 sm:px-6 py-8 text-sm text-muted border-t border-border/80 flex flex-col sm:flex-row gap-1 sm:items-center sm:justify-between">
           <span>unkahi</span>

@@ -29,7 +29,6 @@ export default function CheckInPage() {
       router.push("/dashboard");
     } catch {
       setError("That didn't save. Would you like to try again?");
-    } finally {
       setSubmitting(false);
     }
   }
@@ -73,7 +72,7 @@ export default function CheckInPage() {
 
       {error && <p className="text-[14px] text-danger">{error}</p>}
 
-      <Button disabled={!mood || submitting} onClick={handleSubmit} className="w-fit">
+      <Button disabled={!mood} loading={submitting} onClick={handleSubmit} className="w-fit">
         {submitting ? "Saving..." : "Save"}
       </Button>
     </div>

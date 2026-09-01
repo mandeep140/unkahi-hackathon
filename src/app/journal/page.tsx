@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { apiDelete, apiGet, apiPost } from "@/lib/client";
-import { Badge, Button, Card, EmptyState, PageHeader, SectionTitle, TextArea } from "@/components/ui";
+import { Badge, Button, Card, EmptyState, PageHeader, SectionTitle, TextArea, Skeleton } from "@/components/ui";
 import type { JournalEntry } from "@/lib/types";
 
 async function fetchEntries(): Promise<JournalEntry[]> {
@@ -74,7 +74,7 @@ export default function JournalPage() {
           onChange={(e) => setText(e.target.value)}
         />
         <div className="mt-3 flex items-center gap-3">
-          <Button disabled={!text.trim() || saving} onClick={handleSave}>
+          <Button disabled={!text.trim()} loading={saving} onClick={handleSave}>
             {saving ? "Saving..." : "Save"}
           </Button>
           {justSaved && (
@@ -86,7 +86,18 @@ export default function JournalPage() {
       <div>
         <SectionTitle>What you&apos;ve written before</SectionTitle>
         {loading ? (
-          <p className="text-[14px] text-muted">Loading...</p>
+          <div className="flex flex-col gap-3">
+            {[0, 1, 2].map((i) => (
+              <Card key={i} className="flex flex-col gap-2.5">
+                <div className="flex items-center justify-between">
+                  <Skeleton className="h-3 w-28" />
+                  <Skeleton className="h-5 w-16 rounded-full" />
+                </div>
+                <Skeleton className="h-4 w-full" />
+                <Skeleton className="h-4 w-3/4" />
+              </Card>
+            ))}
+          </div>
         ) : entries.length === 0 ? (
           <EmptyState
             title="Nothing here yet."

@@ -5,11 +5,11 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { DAY_MAP_STEPS, scoreDayMap, type DayMapAnswer } from "@/lib/daymap";
 import { saveDayMapResult } from "@/lib/localStore";
 import { apiPost } from "@/lib/client";
-import { Card, ProgressDots } from "@/components/ui";
+import { Card, LoadingState, ProgressDots } from "@/components/ui";
 
 export default function DayMapPage() {
   return (
-    <Suspense fallback={<p className="text-sm text-muted">Loading...</p>}>
+    <Suspense fallback={<LoadingState label="Setting up your check-in" />}>
       <DayMapContent />
     </Suspense>
   );
@@ -25,6 +25,7 @@ function DayMapContent() {
 
   const [stepIndex, setStepIndex] = useState(0);
   const [answers, setAnswers] = useState<DayMapAnswer[]>([]);
+  const [finishing, setFinishing] = useState(false);
   const step = DAY_MAP_STEPS[stepIndex];
 
   async function choose(option: { pattern: DayMapAnswer["pattern"]; weights: DayMapAnswer["weights"] }) {
@@ -39,6 +40,7 @@ function DayMapContent() {
       return;
     }
 
+    setFinishing(true);
     const result = scoreDayMap(sensations, nextAnswers, false);
     saveDayMapResult(result);
     try {
@@ -50,6 +52,10 @@ function DayMapContent() {
       // Aggregate sync is best-effort; the on-device result is already saved.
     }
     router.push("/results");
+  }
+
+  if (finishing) {
+    return <LoadingState label="Putting your results together" />;
   }
 
   return (

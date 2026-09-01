@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Card, PageHeader, SectionTitle } from "@/components/ui";
+import { Card, PageHeader, SectionTitle, Skeleton } from "@/components/ui";
 
 interface Analytics {
   totalParticipants: number;
@@ -35,10 +35,28 @@ export default function OrgPage() {
       />
 
       {!analytics ? (
-        <p className="text-[14px] text-muted">Loading...</p>
+        <div className="flex flex-col gap-6">
+          <div className="grid gap-4 sm:grid-cols-3">
+            {[0, 1, 2].map((i) => (
+              <Card key={i}>
+                <Skeleton className="h-3 w-24 mb-3" />
+                <Skeleton className="h-8 w-16" />
+              </Card>
+            ))}
+          </div>
+          <div className="grid gap-4 sm:grid-cols-2">
+            {[0, 1].map((i) => (
+              <Card key={i} className="flex flex-col gap-2.5">
+                <Skeleton className="h-3 w-28 mb-1" />
+                <Skeleton className="h-4 w-full" />
+                <Skeleton className="h-4 w-4/5" />
+              </Card>
+            ))}
+          </div>
+        </div>
       ) : (
         <>
-          <div className="grid gap-4 sm:grid-cols-3">
+          <div className="grid gap-4 sm:grid-cols-3 page-transition">
             <Card>
               <SectionTitle>Active this week</SectionTitle>
               <p className="text-3xl font-semibold">

@@ -17,8 +17,11 @@ export default function MyDataPage() {
   const [resonance] = useState(() => getResonanceCounts());
   const baseline = useBaseline();
   const [cleared, setCleared] = useState(false);
+  const [exporting, setExporting] = useState(false);
+  const [clearing, setClearing] = useState(false);
 
   function handleExport() {
+    setExporting(true);
     const json = exportLocalData();
     const blob = new Blob([json], { type: "application/json" });
     const url = URL.createObjectURL(blob);
@@ -27,11 +30,16 @@ export default function MyDataPage() {
     a.download = "unkahi-local-data.json";
     a.click();
     URL.revokeObjectURL(url);
+    setTimeout(() => setExporting(false), 500);
   }
 
   function handleClear() {
-    clearAllLocalData();
-    setCleared(true);
+    setClearing(true);
+    setTimeout(() => {
+      clearAllLocalData();
+      setCleared(true);
+      setClearing(false);
+    }, 400);
   }
 
   if (results.length === 0 || cleared) {
@@ -140,11 +148,11 @@ export default function MyDataPage() {
           program changes, since it never had access to this detail.
         </p>
         <div className="flex flex-wrap gap-3">
-          <Button variant="secondary" onClick={handleExport}>
-            Download as a file
+          <Button variant="secondary" loading={exporting} onClick={handleExport}>
+            {exporting ? "Preparing..." : "Download as a file"}
           </Button>
-          <Button variant="danger" onClick={handleClear}>
-            Remove everything
+          <Button variant="danger" loading={clearing} onClick={handleClear}>
+            {clearing ? "Removing..." : "Remove everything"}
           </Button>
         </div>
       </Card>

@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { Card } from "@/components/ui";
+import { Button, Card } from "@/components/ui";
 
 const PHASES = [
   { label: "Breathe in", seconds: 4 },
@@ -72,12 +72,9 @@ export default function PacedBreathingPage() {
         <p className="text-[14px] text-muted mb-4">
           {running ? `${cycles} rounds so far, no need to count` : "Start whenever you're ready."}
         </p>
-        <button
-          onClick={() => setRunning((r) => !r)}
-          className="px-5 py-2.5 rounded-full text-sm font-medium bg-accent text-accent-foreground hover:bg-accent-strong transition-colors focus-ring shadow-sm"
-        >
+        <Button onClick={() => setRunning((r) => !r)} className="w-fit mx-auto">
           {running ? "Pause" : "Start"}
-        </button>
+        </Button>
       </Card>
 
       <Link

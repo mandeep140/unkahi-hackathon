@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { Card, TextArea } from "@/components/ui";
+import { Button, Card, TextArea } from "@/components/ui";
 
 export default function ReleaseNotePage() {
   const [text, setText] = useState("");
@@ -52,13 +52,9 @@ export default function ReleaseNotePage() {
         </p>
       )}
 
-      <button
-        onClick={release}
-        disabled={!text.trim() || releasing}
-        className="px-5 py-2.5 rounded-full text-[15px] font-medium bg-accent text-accent-foreground hover:bg-accent-strong transition-colors focus-ring shadow-sm disabled:opacity-50"
-      >
+      <Button onClick={release} disabled={!text.trim()} loading={releasing} className="w-fit">
         {releasing ? "Letting go..." : "Let it go"}
-      </button>
+      </Button>
 
       <Link
         href="/tools"
